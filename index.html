@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>资源中心</title>
+    <script src="https://cdn.tailwindcss.com "></script>
+</head>
+<body class="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+    <!-- 导航栏 -->
+    <header class="bg-white dark:bg-gray-800 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <div class="flex items-center">
+                <svg class="w-8 h-8 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
+                </svg>
+                <h1 class="text-xl font-bold text-gray-900 dark:text-white">资源中心</h1>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <span class="text-sm text-gray-500 dark:text-gray-400">
+                    开发者：
+                    <a href="https://kejicx.github.io " target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
+                        科技创新
+                    </a>
+                </span>
+                <button id="authBtn" class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors">
+                    管理员登录
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 面包屑导航 -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div class="flex items-center space-x-2 text-sm text-gray-500 mb-6">
+            <span>当前位置:</span>
+            <span class="font-medium text-gray-900 dark:text-gray-100">资源中心</span>
+            <span id="currentFolder" class="font-medium text-gray-900 dark:text-gray-100 hidden"></span>
+        </div>
+    </div>
+
+    <!-- 操作按钮 -->
+    <div id="actionButtons" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap gap-3 mb-6 hidden">
+        <button onclick="showModal('createFolder')" class="inline-flex items-center px-3 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-md transition-colors">
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            新建文件夹
+        </button>
+        
+        <button onclick="showModal('upload')" class="inline-flex items-center px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md transition-colors">
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+            </svg>
+            上传文件
+        </button>
+    </div>
+
+    <!-- 文件列表 -->
+    <div id="fileList" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <!-- 文件卡片会通过JS动态生成 -->
+    </div>
+
+    <!-- 空状态 -->
+    <div id="emptyState" class="hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-12">
+        <svg class="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        </svg>
+        <h3 class="mt-2 text-lg font-medium text-gray-900 dark:text-white">这里还没有文件</h3>
+        <p class="mt-1 text-gray-500 dark:text-gray-400">
+            点击上方按钮上传文件或创建文件夹
+        </p>
+    </div>
+
+    <!-- 登录模态框 -->
+    <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
+            <h2 class="text-xl font-bold mb-4 text-gray-900 dark:text-white">管理员登录</h2>
+            <form onsubmit="handleLogin(event)">
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">密码</label>
+                    <input 
+                        type="password"
+                        required
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    />
+                </div>
+                <div class="flex justify-end">
+                    <button 
+                        type="submit"
+                        class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+                    >
+                        登录
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 创建文件夹模态框 -->
+    <div id="createFolderModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
+            <h2 class="text-xl font-bold mb-4 text-gray-900 dark:text-white">新建文件夹</h2>
+            <form onsubmit="createFolder(event)">
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">文件夹名称</label>
+                    <input 
+                        id="newFolderName"
+                        type="text"
+                        required
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    />
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button 
+                        type="button"
+                        onclick="hideModal('createFolder')"
+                        class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    >
+                        取消
+                    </button>
+                    <button 
+                        type="submit"
+                        class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+                    >
+                        创建
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // 状态管理
+        let isLoggedIn = false;
+        let currentFolder = 'root';
+        let files = [
+            { id: 1, name: "项目文档", type: "folder", size: "0 KB", date: "2023-08-15", category: "文档" },
+            { id: 2, name: "设计稿.zip", type: "file", size: "2.5 MB", date: "2023-08-14", category: "压缩包" },
+            { id: 3, name: "会议纪要.pdf", type: "file", size: "1.2 MB", date: "2023-08-13", category: "文档" },
+            { id: 4, name: "产品原型", type: "folder", size: "0 KB", date: "2023-08-12", category: "设计" },
+            { id: 5, name: "数据报告.xlsx", type: "file", size: "850 KB", date: "2023-08-11", category: "表格" },
+        ];
+
+        // 处理登录
+        function handleLogin(event) {
+            event.preventDefault();
+            const password = event.target[0].value;
+            
+            if (password === '201707lv') {
+                isLoggedIn = true;
+                document.getElementById('authBtn').textContent = '退出管理';
+                document.getElementById('authBtn').className = 'px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors';
+                document.getElementById('actionButtons').classList.remove('hidden');
+                hideModal('login');
+                renderFiles();
+            } else {
+                alert('密码错误');
+            }
+        }
+
+        // 切换文件夹
+        function openFolder(folderName) {
+            currentFolder = folderName;
+            document.getElementById('currentFolder').textContent = `/${folderName}`;
+            document.getElementById('currentFolder').classList.remove('hidden');
+            renderFiles();
+        }
+
+        // 创建文件夹
+        function createFolder(event) {
+            event.preventDefault();
+            const folderName = document.getElementById('newFolderName').value;
+            
+            if (!folderName) {
+                alert('请输入文件夹名称');
+                return;
+            }
+            
+            files.push({
+                id: Date.now(),
+                name: folderName,
+                type: 'folder',
+                size: '0 KB',
+                date: new Date().toISOString().split('T')[0],
+                category: '文件夹'
+            });
+            
+            hideModal('createFolder');
+            document.getElementById('newFolderName').value = '';
+            renderFiles();
+        }
+
+        // 渲染文件列表
+        function renderFiles() {
+            const container = document.getElementById('fileList');
+            container.innerHTML = '';
+            
+            const filteredFiles = files.filter(file => file.folder === currentFolder);
+            
+            if (filteredFiles.length === 0) {
+                document.getElementById('emptyState').classList.remove('hidden');
+            } else {
+                document.getElementById('emptyState').classList.add('hidden');
+            }
+            
+            filteredFiles.forEach(file => {
+                const card = document.createElement('div');
+                card.className = 'bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-shadow p-4';
+                
+                card.innerHTML = `
+                    <div class="flex flex-col h-full">
+                        <div class="flex-1">
+                            <div class="flex justify-center mb-3">
+                                ${file.type === 'folder' ? 
+                                    `<svg class="w-12 h-12 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M22 10H12L10 5H2v14h20v-8.17zm-6 4.5l2-2.5 2 2.5H16z" />
+                                    </svg>` : 
+                                    `<svg class="w-12 h-12 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>`
+                                }
+                            </div>
+                            
+                            <h3 class="text-sm font-medium text-center text-gray-900 dark:text-white truncate">${file.name}</h3>
+                            
+                            <div class="mt-1 text-xs text-center text-gray-500 dark:text-gray-400">
+                                <span>${file.size}</span> • <span>${file.date}</span>
+                            </div>
+                        </div>
+
+                        <div class="mt-3 flex justify-center">
+                            <button onclick="${file.type === 'folder' ? `openFolder('${file.name}')` : `previewFile('${file.id}')`}" class="text-sm text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
+                                ${file.type === 'folder' ? '打开' : '预览'}
+                            </button>
+                            
+                            ${isLoggedIn ? `
+                                <button onclick="renameFile(${file.id}, '${file.name}')" class="ml-3 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+                                    重命名
+                                </button>
+                                
+                                <button onclick="deleteFile(${file.id})" class="ml-3 text-sm text-red-500 hover:text-red-700">
+                                    删除
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(card);
+            });
+        }
+
+        // 显示模态框
+        function showModal(type) {
+            document.getElementById(`${type}Modal`).classList.remove('hidden');
+        }
+
+        // 隐藏模态框
+        function hideModal(type) {
+            document.getElementById(`${type}Modal`).classList.add('hidden');
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('authBtn').addEventListener('click', () => {
+                if (isLoggedIn) {
+                    isLoggedIn = false;
+                    currentFolder = 'root';
+                    document.getElementById('currentFolder').classList.add('hidden');
+                    document.getElementById('authBtn').textContent = '管理员登录';
+                    document.getElementById('authBtn').className = 'px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors';
+                    document.getElementById('actionButtons').classList.add('hidden');
+                    renderFiles();
+                } else {
+                    showModal('login');
+                }
+            });
+            
+            renderFiles();
+        });
+    </script>
+</body>
+</html>
